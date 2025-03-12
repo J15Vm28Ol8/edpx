@@ -134,6 +134,8 @@ footer {
   padding: 10px;
   border-radius: 8px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  opacity: 0.5;
+  transition: opacity 0.3s ease-in-out;
 }
 
 
@@ -157,8 +159,13 @@ footer {
   flex-direction: column;
   align-items: left;
   justify-content: space-between;
+  opacity: 0.5;
+  transition: opacity 0.3s ease-in-out;
 }
 
+.custom-absolute-panel:hover {
+  opacity: 1;  /* 🔹 Se vuelve 100% visible al pasar el mouse */
+}
 .filter-container {
   width: 100%;
   text-align: left;

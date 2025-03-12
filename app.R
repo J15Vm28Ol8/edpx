@@ -3,6 +3,7 @@ library(shinydashboard)
 library(shinyfullscreen)
 library(plotly)
 library(dplyr)
+library(tidyr)
 library(haven)
 library(fst)
 library(DT)
@@ -20,9 +21,18 @@ logo <- "marca_agencia.png"
 ui <- dashboardPage(
   dashboardHeader(
     title = div(
-      span(img(src = logo, height = 100), style = "float: left; margin-left: 50px; margin-bottom: 5px; margin-top: 5px;"),
-      span("Explorador Simce", style = "color: #00495f; font-size: 30px; font-weight: bold; line-height: 80px; display: inline-block;")
-    ),
+      span(
+        tags$a(href = "https://www.agenciaeducacion.cl/", target = "_blank",
+               img(src = logo, height = 100)
+        ), 
+        style = "float: left; margin-left: 50px; margin-bottom: 5px; margin-top: 5px;"
+      ),
+      span(
+        "Explorador Simce", 
+        style = "color: #00495f; font-size: 30px; font-weight: bold; line-height: 80px; display: inline-block;"
+      )
+    )
+    ,
     titleWidth = "100%",
     tags$li(class = "dropdown",
             tags$style(".main-header {height: 90px !important; max-height: 90px !important; background-color: white !important; border-bottom: 1px solid #dcdcdc !important;}"),
@@ -31,16 +41,26 @@ ui <- dashboardPage(
             tags$style(".navbar {min-height: 90px !important; background-color: white !important;}")
     )
   ),
-  
   dashboardSidebar(
     div(style = "padding: 10px;",
         h3("Filtros", style = "color: #00495f; text-align: center;"),
         sliderInput("agno", "Seleccione Rango de Años:", 
                     min = 2012, max = 2023, 
                     value = c(2015, 2023), sep = "", post = " "),
-        selectInput("asig", "Seleccione Asignatura:", choices = c("Matemática" = "mate", "Lectura" = "lect"), selected = "lect"),
-        selectInput("grado", "Seleccione Grado:", choices = c("4b", "2m"), selected = "4b")
+        selectInput("asig", "Seleccione Asignatura:", 
+                    choices = c("Matemática" = "mate", "Lectura" = "lect"), 
+                    selected = "lect"),
+        selectInput("grado", "Seleccione Grado:", 
+                    choices = c("4b", "2m"), 
+                    selected = "4b")
     ),
+    div(
+      hr(),
+      div("Versión 1.0.0", 
+          style = "color: white; font-size: 12px; font-style: italic; text-align: center; padding: 5px;"),
+      style = "padding: 10px;"
+    ),
+    
     width = 250
   ),
   dashboardBody(
@@ -55,7 +75,7 @@ ui <- dashboardPage(
         div(style = "margin-bottom: 15px; margin-left: 250px; display: flex; gap: 100px; justify-content: center;",
             bsButton("btn_nacional", "Nacional", icon = icon("flag"), style = "default", class = "btn-custom"),
             bsButton("btn_genero", "Género", icon = icon("venus-mars"), style = "default", class = "btn-custom"),
-            bsButton("btn_dependencia", "Dependencia", icon = icon("university"), style = "default", class = "btn-custom"),
+            bsButton("btn_dependencia", "Ed. Pública", icon = icon("university"), style = "default", class = "btn-custom"),
             bsButton("btn_mapa", "Territorial", icon = icon("location-arrow"), style = "default", class = "btn-custom")
         )
       )
@@ -74,6 +94,26 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output, session) {
+  
+  observe({
+    showModal(modalDialog(
+      title = div(style = "display: flex; align-items: center;",
+                  tags$img(src = "marca_agencia.png", height = "50px", style = "margin-right: 10px;"),
+                  div("¡Bienvenido al centro interactivo de datos Simce!", 
+                      style = "flex-grow: 1; text-align: center; font-size: 20px; font-weight: bold;")
+      ),
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+      Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+      Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+      Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+      Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+      Nunc porta tellus ac nisl tincidunt tempus."
+      ,
+      easyClose = TRUE,
+      footer = div(style = "text-align: center;", modalButton("Cerrar"))
+    ))
+  })
   
   data_rv <- reactiveValues()
   observe({
@@ -159,12 +199,14 @@ server <- function(input, output, session) {
     selected_comuna(input$comuna)
     
     labels <- sprintf(
-      "<strong>%s</strong><br/>%g %s<br/>Total: %d estudiantes<br/>Año: 2023",
+      "<strong>%s</strong><br/>%g %s<br/>Total: %d estudiantes<br/>Año: %s",
       filtered_comuna_mapa()$NOM_COM_RBD, 
       round(filtered_comuna_mapa()$num, 1),
       ifelse(input$var_mapa == "Puntaje", "Puntos", "%"),
-      filtered_comuna_mapa()$n
+      filtered_comuna_mapa()$n,
+      input$anio_sel
     ) %>% lapply(htmltools::HTML)
+    
     
     leafletProxy("plot41") %>%
       clearShapes() %>%
@@ -183,6 +225,203 @@ server <- function(input, output, session) {
       )
   })
   
+  # Info Plots
+  observeEvent(input$info_plot11, {
+    showModal(modalDialog(
+      title = "Promedio Nacional",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+      Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+      Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+      Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+      Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+      Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot12, {
+    showModal(modalDialog(
+      title = "Promedio por GSE",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot13, {
+    showModal(modalDialog(
+      title = "Distribución Estándares de Aprendizaje Nacional",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot14, {
+    showModal(modalDialog(
+      title = "Brecha GSE Alto - Bajo",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot21, {
+    showModal(modalDialog(
+      title = "Promedio por Género",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot22, {
+    showModal(modalDialog(
+      title = "Brecha género por GSE",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot23, {
+    showModal(modalDialog(
+      title = "Distribución Estándares de Aprendizaje por Género",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot24, {
+    showModal(modalDialog(
+      title = "Distribución de brechas a nivel Escuela",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot31, {
+    showModal(modalDialog(
+      title = "Distribución por Dependencia",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot32, {
+    showModal(modalDialog(
+      title = "Promedio por SLEP",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot33, {
+    showModal(modalDialog(
+      title = "Brecha Dependencia - Nacional por GSE agrupado",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot34, {
+    showModal(modalDialog(
+      title = "Brecha SLEP - Municipal",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  observeEvent(input$info_plot41, {
+    showModal(modalDialog(
+      title = "Resultados por Comuna",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Cras eu lectus orci. Fusce eget eleifend tellus. Duis luctus eget risus id porttitor.
+    Sed ipsum dolor, aliquet eget finibus in, congue at mi.
+    Donec tincidunt nisi consectetur enim placerat, nec finibus lacus fringilla.
+    Proin tincidunt diam nulla. Sed laoreet velit id ultrices volutpat.
+    Nulla facilisi. Quisque convallis sagittis commodo. Aenean lacinia facilisis orci.
+    Nunc porta tellus ac nisl tincidunt tempus.",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
+  
+  
   
 
   # Renderizar UI dinámico basado en el botón seleccionado
@@ -192,7 +431,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Promedio Nacional",
+                 title = tagList("Promedio Nacional", 
+                                 actionLink("info_plot11", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -203,7 +445,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Promedio por GSE",
+                 title = tagList("Promedio por GSE", 
+                                 actionLink("info_plot12", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -215,7 +460,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Distribución Estándares de Aprendizaje Nacional",
+                 title = tagList("Distribución Estándares de Aprendizaje Nacional", 
+                                 actionLink("info_plot13", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -226,7 +474,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Brecha GSE Alto - Bajo",
+                 title = tagList("Brecha GSE Alto - Bajo", 
+                                 actionLink("info_plot14", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -239,7 +490,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Promedio Nacional",
+                 title = tagList("Promedio por Género", 
+                                 actionLink("info_plot21", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -250,7 +504,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Brecha género por GSE",
+                 title = tagList("Brecha género por GSE", 
+                                 actionLink("info_plot22", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -262,7 +519,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Distribución Estándares de Aprendizaje Nacional",
+                 title = tagList("Distribución Estándares de Aprendizaje Nacional", 
+                                 actionLink("info_plot23", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -273,7 +533,10 @@ server <- function(input, output, session) {
              column(
                width = 5,
                box(
-                 title = "Distribución de brechas a nivel Escuela",
+                 title = tagList("Distribución de brechas a nivel Escuela", 
+                                 actionLink("info_plot24", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "330px",
@@ -286,7 +549,10 @@ server <- function(input, output, session) {
               column(
                 width = 5,
                 box(
-                  title = "Promedio por Dependencia",
+                  title = tagList("Promedio por Dependencia", 
+                                  actionLink("info_plot31", icon("circle-question"), 
+                                             style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                   status = "primary",
                   solidHeader = TRUE,
                   height = "330px",
@@ -297,7 +563,10 @@ server <- function(input, output, session) {
               column(
                 width = 5,
                 box(
-                  title = "Promedio por SLEP",
+                  title = tagList("Promedio por SLEP", 
+                                  actionLink("info_plot32", icon("circle-question"), 
+                                             style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                   status = "primary",
                   solidHeader = TRUE,
                   height = "330px",
@@ -308,7 +577,10 @@ server <- function(input, output, session) {
               column(
                 width = 5,
                 box(
-                  title = "Brecha Dependencia - Nacional por GSE agrupado",
+                  title = tagList("Brecha Dependencia - Nacional por GSE agrupado", 
+                                  actionLink("info_plot33", icon("circle-question"), 
+                                             style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                   status = "primary",
                   solidHeader = TRUE,
                   height = "330px",
@@ -320,7 +592,10 @@ server <- function(input, output, session) {
               column(
                 width = 5,
                 box(
-                  title = "Brecha SLEP - Municipal",
+                  title = tagList("Brecha SLEP - Municipal", 
+                                  actionLink("info_plot34", icon("circle-question"), 
+                                             style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                   status = "primary",
                   solidHeader = TRUE,
                   height = "330px",
@@ -330,54 +605,74 @@ server <- function(input, output, session) {
               )
            ),
            "mapa" = fluidRow(
-             
-             # Mapa a pantalla completa
              column(
                width = 10,
                box(
-                 title = "Resultado por Comuna 2023",
+                 title = tagList("Resultados por Comuna", 
+                                 actionLink("info_plot41", icon("circle-question"), 
+                                            style = "color: #ffffff; font-size: 18px; text-decoration: none; 
+                                          position: absolute; right: 10px; top: 10px; z-index: 1050;")),
                  status = "primary",
                  solidHeader = TRUE,
                  height = "675px",
-                 leafletOutput("plot41", height = "605px", width = "98.5%"),
                  width = "100%",
-                 style = "overflow: hidden;"
-               )
-             ),
-             
-             absolutePanel(
-               id = "control_panel",
-               class = "custom-absolute-panel",
-               fixed = TRUE,
-               draggable = TRUE,
-               top = 220, left = "auto", right = 100, bottom = "auto",
-               width = 260, height = "auto",
-               
-               style = "background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 8px; 
-           box-shadow: 2px 2px 5px rgba(0,0,0,0.2); position: absolute; z-index: 1050;",
-               
-               div(class = "filter-container",
-                   selectInput("region", "Seleccione Región:", 
-                               choices = unique(data_rv$panel_comuna$Region),
-                               selected = "METROPOLITANA DE SANTIAGO"),
-                   selectInput("comuna", "Seleccione Comuna:", 
-                               choices = unique(data_rv$panel_comuna$NOM_COM_RBD[data_rv$panel_comuna$Region == "METROPOLITANA DE SANTIAGO"]),
-                               selected = "PROVIDENCIA"),
-                   selectInput("var_mapa", "Seleccione Variable a Mapear:", 
-                               choices = c("Puntaje" = "Puntaje", 
-                                           "Porcentaje Estudiantes Insuficiente" = "Insuficiente", 
-                                           "Porcentaje Estudiantes Elemental" = "Elemental", 
-                                           "Porcentaje Estudiantes Adecuado" = "Adecuado"),
-                               selected = "Puntaje")
-               ),
-               
-               div(class = "plot-container",
-                   plotOutput("plot42", height = "160px", width = "100%"),
-                   plotOutput("plot43", height = "160px", width = "100%")
+                 style = "overflow: hidden; position: relative;",
+                 
+                 leafletOutput("plot41", height = "605px", width = "98.5%"),
+                 
+                 absolutePanel(
+                   id = "year_panel",
+                   class = "custom-absolute-panel",
+                   fixed = TRUE,
+                   draggable = TRUE,
+                   top = 90, left = 10, bottom = "auto", right = "auto",
+                   width = 150, height = "auto",
+                   
+                   style = "background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 8px; 
+                 box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 1050; font-size: 12px;",
+                   
+                   selectInput("anio_sel", "Año a mapear:", 
+                               choices = sort(unique(data_rv$panel_comuna$agno), decreasing = TRUE),
+                               selected = max(data_rv$panel_comuna$agno))
+                 ),
+                 
+                 absolutePanel(
+                   id = "control_panel",
+                   class = "custom-absolute-panel",
+                   fixed = TRUE,
+                   draggable = TRUE,
+                   top = 10, right = 10, bottom = "auto", left = "auto",
+                   width = 260, height = "auto",
+                   
+                   style = "background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 8px; 
+                 box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 1050; font-size: 12px;",
+                   
+                   div(class = "filter-container",
+                       selectInput("region", "Seleccione Región:", 
+                                   choices = unique(data_rv$panel_comuna$Region),
+                                   selected = "METROPOLITANA DE SANTIAGO"),
+                       selectInput("comuna", "Seleccione Comuna:", 
+                                   choices = unique(data_rv$panel_comuna$NOM_COM_RBD[data_rv$panel_comuna$Region == "METROPOLITANA DE SANTIAGO"]),
+                                   selected = "PROVIDENCIA"),
+                       selectInput("var_mapa", "Seleccione Variable a Mapear:", 
+                                   choices = c("Puntaje" = "Puntaje", 
+                                               "Porcentaje Estudiantes Insuficiente" = "Insuficiente", 
+                                               "Porcentaje Estudiantes Elemental" = "Elemental", 
+                                               "Porcentaje Estudiantes Adecuado" = "Adecuado"),
+                                   selected = "Puntaje")
+                   ),
+                   
+                   div(class = "plot-container",
+                       plotOutput("plot42", height = "160px", width = "100%"),
+                       plotOutput("plot43", height = "160px", width = "100%")
+                   )
+                 )
                )
              )
-             
            )
+           
+           
+           
            
     )
   })
@@ -574,7 +869,7 @@ server <- function(input, output, session) {
       filter(
         asig == input$asig,
         grado == input$grado,
-        agno == 2023,
+        agno == input$anio_sel,
         Region == input$region,
         txt == input$var_mapa
       ) 
@@ -591,7 +886,7 @@ server <- function(input, output, session) {
         agno >= input$agno[1] & agno <= input$agno[2],
         Region == input$region,
         NOM_COM_RBD == input$comuna,
-        txt == "Puntaje"
+        txt %in% c("Puntaje")
       ) 
   })
   
@@ -603,92 +898,42 @@ server <- function(input, output, session) {
         agno >= input$agno[1] & agno <= input$agno[2],
         Region == input$region,
         NOM_COM_RBD == input$comuna,
-        txt != "Puntaje"
+        txt != c("Puntaje")
       ) 
   })
   
-  # Definir colores específicos para los niveles de eda_text
-colores_eda <- c("Adecuado" = "blue", "Elemental" = "skyblue", "Insuficiente" = "lightblue")
-colores_gse <- c("Alto" = "#E41A1C", "Medio alto" = "#377EB8", "Medio"= "#4DAF4A", "Medio bajo"= "#984EA3", "Bajo" = "#FF7F00", "Nacional" = "black")
-colores_gen <- c("Hombres" = "#007EA7", "Mujeres" = "#FF6F61")
-colores_dep <- c("Público" = "#AA9000", "Particular<br>Subvencionado" = "#00AC71", "Particular<br>Pagado" = "gray62")
-colores_sle <- c("Municipal" = "#cd0bbc", "Slep inicio 2018" = "#f5c710", "Slep inicio 2019" = "#2297e6", "Slep inicio 2020" = "darkblue")
-
+  # Definir colores
+  colores_eda <- c("Adecuado" = "#69ccd6", "Elemental" = "#ff5235", "Insuficiente" = "#024a61")
+  colores_gse <- c("Alto" = "#613b75", "Medio alto" = "#69ccd6", "Medio"= "#bfbfbf", "Medio bajo"= "#ff5235", "Bajo" = "#024a61", "Nacional" = "black")
+  colores_gen <- c("Hombres" = "#e74a2d", "Mujeres" = "#004a62")
+  colores_dep <- c("Público" = "#AA9000", "Particular<br>Subvencionado" = "#00AC71", "Particular<br>Pagado" = "gray62")
+  colores_sle <- c("Municipal" = "#00455d", "Slep inicio 2018" = "#ff5235", "Slep inicio 2019" = "#69ccd6", "Slep inicio 2020" = "#bfbfbf")
 
   # Gráficos Nacional
-output$plot11 <- renderPlotly({
-  req(filtered_prom_nac1())
-  plot_ly() %>%
-    add_segments(
+
+  output$plot11 <- renderPlotly({
+    req(filtered_prom_nac1())
+    plot_ly(
       data = filtered_prom_nac1(),
-      x = ~pos_x, xend = ~pos_x,
-      y = ~min, yend = ~Q1,
-      line = list(color = "black", width = 1),
-      name = "Bigote inferior",
-      hoverinfo = "skip"
-    ) %>%
-    add_segments(
-      data = filtered_prom_nac1(),
-      x = ~pos_x, xend = ~pos_x,
-      y = ~max, yend = ~Q3,
-      line = list(color = "black", width = 1),
-      name = "Bigote superior",
-      hoverinfo = "skip"
-    ) %>%
-    layout(
-      shapes = lapply(1:nrow(filtered_prom_nac1()), function(i) {
-        list(
-          type = "rect",
-          x0 = filtered_prom_nac1()$pos_x[i] - 0.2,
-          x1 = filtered_prom_nac1()$pos_x[i] + 0.2,
-          y0 = filtered_prom_nac1()$Q1[i],
-          y1 = filtered_prom_nac1()$Q3[i],
-          fillcolor = "lightblue",
-          opacity = 0.5,
-          line = list(color = "black")
-        )
-      })
-    ) %>%
-    add_segments(
-      data = filtered_prom_nac1(),
-      x = ~pos_x - 0.2, xend = ~pos_x + 0.2,
-      y = ~mediana, yend = ~mediana,
-      line = list(color = "black", width = 2),
-      name = "Mediana",
-      hoverinfo = "skip"
-    ) %>%
-    add_trace(
-      data = filtered_prom_nac1(),
-      x = ~pos_x,
-      y = ~mediana,
-      type = "scatter",
-      mode = "markers",
-      marker = list(size = 10, opacity = 0),
-      hoverinfo = "text",
-      text = ~paste(
-        " Año:", agno, "<br>",
-        "Mínimo:", round(min), "<br>",
-        "Q1:", round(Q1), "<br>",
-        "Mediana:", round(mediana), "<br>",
-        "Promedio:", round(num), "<br>",
-        "Q3:", round(Q3), "<br>",
-        "Máximo:", round(max)
-      ),
-      name = "Hover Info",
-      hoverlabel = list(
-        bgcolor = "rgba(15, 105, 180, 0.8)",
-        font = list(color = "white", size = 12),
-        bordercolor = "black"
-      )
-    ) %>%
+    x = ~factor(agno),
+    y = ~num,
+    type = 'scatter',
+    mode = 'lines+markers+text',
+    text = ~round(num, 0),
+    textposition = "top center",
+    marker = list(color = "#004a62"),
+    line = list(color = "#004a62"),
+    textfont = list(color = "#004a62")
+  ) %>%
     layout(
       title = "",
-      xaxis = list(title = "", tickvals = filtered_prom_nac1()$pos_x, ticktext = filtered_prom_nac1()$agno),
-      yaxis = list(title = ""),
-      showlegend = FALSE
-    ) 
-})
+      xaxis = list(title = ""),
+      yaxis = list(title = "", range = c(200, 320)),
+      legend = list(title = list(text = ""))
+    )
   
+  })
+
   output$plot12 <- renderPlotly({
     req(filtered_prom_nac2())
     plot_ly(
@@ -756,9 +1001,6 @@ output$plot11 <- renderPlotly({
       )
   })
   
-
-  
-  
   # Gráficos Género
   output$plot21 <- renderPlotly({
     req(filtered_prom_nac_gen())
@@ -781,7 +1023,6 @@ output$plot11 <- renderPlotly({
         legend = list(title = list(text = ""))
       )
   })
-  
   
   output$plot22 <- renderPlotly({
     req(filtered_brecha_gen())
@@ -877,7 +1118,6 @@ output$plot11 <- renderPlotly({
       )
   })
   
-  
   # Gráficos Dependencia
   output$plot31 <- renderPlotly({
     req(filtered_depe())
@@ -895,7 +1135,8 @@ output$plot11 <- renderPlotly({
       layout(
         title = "",
         xaxis = list(title = ""),
-        yaxis = list(title = "", range = c(min(filtered_depe()$num)-10, max(filtered_depe()$num)+10)),
+        yaxis = list(title = "", range = c(200, 340)),
+        #yaxis = list(title = "", range = c(min(filtered_depe()$num)-10, max(filtered_depe()$num)+10)),
         legend = list(title = list(text = ""))
       )
   })
@@ -989,11 +1230,12 @@ output$plot11 <- renderPlotly({
     center_coords <- st_coordinates(center)
     
     labels <- sprintf(
-      "<strong>%s</strong><br/>%g %s<br/>Total: %d estudiantes<br/>Año: 2023",
+      "<strong>%s</strong><br/>%g %s<br/>Total: %d estudiantes<br/>Año: %s",
       filtered_comuna_mapa()$NOM_COM_RBD, 
       round(filtered_comuna_mapa()$num, 1),
       ifelse(input$var_mapa == "Puntaje", "Puntos", "%"),
-      filtered_comuna_mapa()$n
+      filtered_comuna_mapa()$n,
+      input$anio_sel
     ) %>% lapply(htmltools::HTML)
     
     paleta <- colorNumeric("Blues", domain = filtered_comuna_mapa()$num)
@@ -1028,25 +1270,38 @@ output$plot11 <- renderPlotly({
   })
   
   
-  
-  
-  
-  
   output$plot42 <- renderPlot({
     req(filtered_comuna())
-    ggplot(data = filtered_comuna() %>% arrange(agno), aes(x = factor(agno), y = num, group = 1)) +  
-      geom_line(color = "blue", linewidth = 1) +
-      geom_point(color = "blue", size = 3) +
-      geom_text(aes(label = round(num, 0)), vjust = -1, size = 3) +
+    
+    df_long <- filtered_comuna() %>%
+      select(agno, num, ptje_nac) %>%
+      pivot_longer(cols = c(num, ptje_nac), 
+                   names_to = "tipo", 
+                   values_to = "puntaje")
+    
+    ggplot(data = df_long %>% arrange(agno), aes(x = factor(agno), y = puntaje, group = tipo, color = tipo)) +  
+      geom_line(data = df_long %>% filter(tipo == "num"), linewidth = 1, color = "blue") +  
+      geom_line(data = df_long %>% filter(tipo == "ptje_nac"), linewidth = 1, alpha = 0.8, 
+                color = "orange", linetype = "dashed") +  
+      geom_point(data = df_long %>% filter(tipo == "num"), aes(shape = tipo), size = 3, color = "blue") +  
+      geom_point(data = df_long %>% filter(tipo == "ptje_nac"), aes(shape = tipo), size = 3, alpha = 0.5, color = "orange") +  
+      geom_text(data = df_long %>% filter(tipo == "num"), 
+                aes(x = factor(agno), y = puntaje, label = round(puntaje, 0)), 
+                vjust = -1, size = 3, color = "black", fontface = "bold", inherit.aes = FALSE) +  
+      
       scale_x_discrete() +
-      scale_y_continuous(limits = c(min(filtered_comuna()$num) - 10, max(filtered_comuna()$num) + 10)) +
+      scale_y_continuous(limits = c(min(df_long$puntaje) - 10, max(df_long$puntaje) + 10)) +
       labs(x = "", y = "") +
       theme_minimal() +
       theme(
         axis.text.x = element_text(size = 10, angle = -90, vjust = 0.5, hjust = 1, face = "bold"),
         axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()
-      )
+        axis.ticks.y = element_blank(),
+        legend.position = "top"
+      ) +
+      scale_color_manual(values = c("num" = "blue", "ptje_nac" = "orange"), labels = c("Puntaje Comuna", "Puntaje Nacional")) + 
+      scale_shape_manual(values = c("num" = 16, "ptje_nac" = 16), labels = c("Puntaje Comuna", "Puntaje Nacional")) + 
+      guides(shape = guide_legend(title = ""), color = guide_legend(title = ""))
   })
   
   output$plot43 <- renderPlot({
