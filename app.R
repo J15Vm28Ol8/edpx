@@ -80,7 +80,7 @@ ui <- dashboardPage(
     
     div(
       hr(),
-      div("Versión 1.0.4",
+      div("Versión 1.0.5",
           style = "color: white; font-size: 12px; font-style: italic; text-align: center; padding: 5px;"),
       style = "padding: 10px;"
     ),
@@ -173,6 +173,11 @@ shinyApp(ui, server)
 
 
 server <- function(input, output, session) {
+  
+  observeEvent(input$boton_link, {
+    shinyjs::runjs("window.open('https://agce-img-publicas.s3.us-east-1.amazonaws.com/visor-simce/Terminos_condiciones_de_uso.pdf', '_blank')")
+  })
+  
   
 
   
@@ -575,7 +580,11 @@ server <- function(input, output, session) {
       <h2>Contacto y soporte</h2>
       <p>Si tienes dudas sobre el uso de este dashboard o necesitas información adicional, puedes acceder a la 
       <a href="https://www.agenciaeducacion.cl/oirs/">OIRS institucional</a>.</p>
-    ')
+    '),
+     div(
+       style = "text-align: center; margin-top: 20px;",
+       bsButton("boton_link", "Términos y condiciones de uso", icon = icon("external-link"), class = "btn-custom")
+     )
                      )
                    )
                    
