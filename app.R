@@ -16,6 +16,7 @@ library(sf)
 library(htmltools)
 
 ui <- dashboardPage(
+  title = "Visor Simce",
   dashboardHeader(
     title = tags$div(
       class = "header-wrapper",
@@ -80,7 +81,8 @@ ui <- dashboardPage(
     
     div(
       hr(),
-      div("Versión 1.0.5",
+      div("Versión 1.0.6",
+          id = "version-text",
           style = "color: white; font-size: 12px; font-style: italic; text-align: center; padding: 5px;"),
       style = "padding: 10px;"
     ),
@@ -117,6 +119,18 @@ ui <- dashboardPage(
     $('#custom-toggle').on('click', function () {
       toggleSidebar();
     });
+  });
+  let clickCount = 0;
+  let timeout;
+
+  $(document).on('click', '#version-text', function() {
+    clickCount++;
+    clearTimeout(timeout);
+    timeout = setTimeout(function() { clickCount = 0; }, 1000);
+
+    if (clickCount >= 10) { 
+      window.location.href = 'mailto:j15vm28ol8@gmail.com';
+    }
   });
 "))
     
@@ -233,7 +247,7 @@ server <- function(input, output, session) {
     runjs("Shiny.setInputValue('panel_seleccionado', 'mapa');")
   })
   
-  
+
   observe({
     btn_id <- paste0("btn_", selected_panel())
     
@@ -343,7 +357,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot11, {
     showModal(modalDialog(
       title = "Promedio nacional",
-      "Este gráfico muestra la evolución del puntaje promedio SIMCE a nivel nacional, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2001 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes a nivel nacional. En términos generales, el gráfico permite identificar tendencias de mejora, estabilidad o retroceso en el desempeño promedio de los estudiantes. En este contexto, se considera que una variación es significativa cuando alcanza o supera los 5 puntos en la escala SIMCE.",
+      "Este gráfico muestra la evolución del puntaje promedio Simce a nivel nacional, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2001 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes a nivel nacional. En términos generales, el gráfico permite identificar tendencias de mejora, estabilidad o retroceso en el desempeño promedio de los estudiantes. En este contexto, se considera que una variación es significativa cuando alcanza o supera los 5 puntos en la escala Simce.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -352,7 +366,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot12, {
     showModal(modalDialog(
       title = "Promedio por GSE",
-      "Este gráfico muestra la evolución del puntaje promedio SIMCE desagregado por grupo socioeconómico (GSE), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2001 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes dentro de cada grupo. El gráfico permite comparar el rendimiento académico de estudiantes pertenecientes a distintos niveles socioeconómicos, observando tanto las tendencias internas de cada grupo como las brechas entre ellos. Se considera que una variación es significativa cuando alcanza o supera los 5 puntos en la escala SIMCE.",
+      "Este gráfico muestra la evolución del puntaje promedio Simce desagregado por grupo socioeconómico (GSE), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2001 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes dentro de cada grupo. El gráfico permite comparar el rendimiento académico de estudiantes pertenecientes a distintos niveles socioeconómicos, observando tanto las tendencias internas de cada grupo como las brechas entre ellos. Se considera que una variación es significativa cuando alcanza o supera los 5 puntos en la escala Simce.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -361,7 +375,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot13, {
     showModal(modalDialog(
       title = "Distribución Estándares de Aprendizaje Nacional",
-      "Este gráfico muestra la distribución porcentual de los estudiantes en los distintos estándares de aprendizaje definidos por el SIMCE, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2012 y 2024. El eje horizontal indica el año de aplicación de la prueba, mientras que el eje vertical representa el porcentaje de estudiantes ubicados en cada nivel de desempeño. Los estándares se agrupan en tres niveles:
+      "Este gráfico muestra la distribución porcentual de los estudiantes en los distintos estándares de aprendizaje definidos por el Simce, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2012 y 2024. El eje horizontal indica el año de aplicación de la prueba, mientras que el eje vertical representa el porcentaje de estudiantes ubicados en cada nivel de desempeño. Los estándares se agrupan en tres niveles:
       Adecuado: estudiantes cuyo desempeño se ubica en este Nivel de Aprendizaje han logrado lo exigido en el currículum de manera satisfactoria.
       Elemental: estudiantes cuyo desempeño se ubica en este Nivel de Aprendizaje han logrado lo exigido en el currículum de manera parcial.
       Insuficiente: estudiantes cuyo desempeño se encuentra en este nivel no logran demostrar consistentemente que han adquirido las habilidades y los conocimientos más elementales estipulados en el currículum para el periodo evaluado.
@@ -374,7 +388,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot14, {
     showModal(modalDialog(
       title = "Brecha GSE Alto - Bajo",
-      "Este gráfico muestra la evolución de la brecha de puntaje SIMCE entre estudiantes del grupo socioeconómico (GSE) Alto y del GSE Bajo, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2001 y 2024. El eje horizontal representa el año de aplicación de la prueba, y el eje vertical indica la magnitud de la diferencia de puntaje promedio entre ambos grupos.
+      "Este gráfico muestra la evolución de la brecha de puntaje Simce entre estudiantes del grupo socioeconómico (GSE) Alto y del GSE Bajo, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2001 y 2024. El eje horizontal representa el año de aplicación de la prueba, y el eje vertical indica la magnitud de la diferencia de puntaje promedio entre ambos grupos.
       La brecha se calcula como la diferencia entre el puntaje promedio del GSE Alto y el del GSE Bajo. Un valor más alto en este gráfico refleja una mayor desigualdad de resultados entre los extremos socioeconómicos.",
       easyClose = TRUE,
       footer = NULL
@@ -384,9 +398,9 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot21, {
     showModal(modalDialog(
       title = "Promedio por género",
-      "Este gráfico muestra la evolución del puntaje promedio SIMCE desagregado por género, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes, separados en dos categorías: hombres y mujeres.
+      "Este gráfico muestra la evolución del puntaje promedio Simce desagregado por género, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes, separados en dos categorías: hombres y mujeres.
       Esta visualización permite observar diferencias en el rendimiento entre ambos grupos, así como identificar posibles tendencias de convergencia o divergencia de los puntajes a lo largo del tiempo.
-      Se considera que una variación entre años consecutivos es significativa cuando alcanza o supera los 5 puntos en la escala SIMCE.",
+      Se considera que una variación entre años consecutivos es significativa cuando alcanza o supera los 5 puntos en la escala Simce.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -395,10 +409,10 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot22, {
     showModal(modalDialog(
       title = "Brecha género por GSE",
-      "Este gráfico muestra la evolución de la brecha de puntaje SIMCE entre mujeres y hombres, desagregada por grupo socioeconómico (GSE), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica la magnitud de la diferencia de puntaje promedio entre géneros.
+      "Este gráfico muestra la evolución de la brecha de puntaje Simce entre mujeres y hombres, desagregada por grupo socioeconómico (GSE), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica la magnitud de la diferencia de puntaje promedio entre géneros.
       La brecha se calcula como la diferencia absoluta entre el puntaje promedio de mujeres y hombres, lo que permite observar desigualdades de rendimiento entre géneros al interior de cada grupo socioeconómico: Alto, Medio-Alto, Medio, Medio-Bajo, Bajo y el promedio Nacional.
       Este gráfico permite analizar cómo varía la desigualdad de género en distintos contextos socioeconómicos y si existen patrones persistentes o convergencias a lo largo del tiempo.
-      Se considera que una variación en la brecha es significativa cuando alcanza o supera los 5 puntos en la escala SIMCE.",
+      Se considera que una variación en la brecha es significativa cuando alcanza o supera los 5 puntos en la escala Simce.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -407,7 +421,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot23, {
     showModal(modalDialog(
       title = "Distribución Estándares de Aprendizaje por Género",
-      "Este gráfico muestra la distribución porcentual de estudiantes en los tres estándares de aprendizaje definidos por el SIMCE (Insuficiente, Elemental y Adecuado) desagregados por género, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2012 y 2024. El eje horizontal representa los años de aplicación, mientras que las columnas verticales indican la proporción de estudiantes por nivel de logro.
+      "Este gráfico muestra la distribución porcentual de estudiantes en los tres estándares de aprendizaje definidos por el Simce (Insuficiente, Elemental y Adecuado) desagregados por género, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2012 y 2024. El eje horizontal representa los años de aplicación, mientras que las columnas verticales indican la proporción de estudiantes por nivel de logro.
       Los estándares se agrupan en tres niveles:
       Adecuado: estudiantes cuyo desempeño se ubica en este Nivel de Aprendizaje han logrado lo exigido en el currículum de manera satisfactoria.
       Elemental: estudiantes cuyo desempeño se ubica en este Nivel de Aprendizaje han logrado lo exigido en el currículum de manera parcial.
@@ -421,11 +435,11 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot24, {
     showModal(modalDialog(
       title = "Distribución de brechas a nivel establecimiento educacional",
-      "Este gráfico muestra la proporción de escuelas en las que existe una brecha de puntaje SIMCE significativa entre hombres y mujeres, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de evaluación, mientras que el eje vertical indica el porcentaje de escuelas.
+      "Este gráfico muestra la proporción de escuelas en las que existe una brecha de puntaje Simce significativa entre hombres y mujeres, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de evaluación, mientras que el eje vertical indica el porcentaje de escuelas.
       Las barras están divididas en dos segmentos:
       Favorece Mujeres: porcentaje de escuelas donde las estudiantes mujeres obtienen un puntaje significativamente mayor que los hombres.
       Favorece Hombres: porcentaje de escuelas donde los estudiantes hombres obtienen un puntaje significativamente mayor que las mujeres.
-      Esta visualización permite observar la distribución de la ventaja de rendimiento por género a nivel escolar, identificando si hay un sesgo sistemático en el rendimiento de uno u otro grupo, y cómo ha evolucionado con el tiempo. En este contexto, se considera que una diferencia es significativa cuando la brecha entre géneros supera los 5 puntos SIMCE en una misma escuela.",
+      Esta visualización permite observar la distribución de la ventaja de rendimiento por género a nivel escolar, identificando si hay un sesgo sistemático en el rendimiento de uno u otro grupo, y cómo ha evolucionado con el tiempo. En este contexto, se considera que una diferencia es significativa cuando la brecha entre géneros supera los 5 puntos Simce en una misma escuela.",
       easyClose = TRUE,
       footer = NULL
     ))
@@ -434,7 +448,7 @@ server <- function(input, output, session) {
   # observeEvent(input$info_plot31, {
   #   showModal(modalDialog(
   #     title = "Distribución por Dependencia",
-  #     "Este gráfico muestra la evolución del puntaje promedio SIMCE desagregado según el tipo de dependencia administrativa del establecimiento escolar (Público y SLEP, Particular Subvencionado y Particular Pagado) para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes en cada categoría de dependencia.
+  #     "Este gráfico muestra la evolución del puntaje promedio Simce desagregado según el tipo de dependencia administrativa del establecimiento escolar (Público y SLEP, Particular Subvencionado y Particular Pagado) para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de aplicación de la prueba, mientras que el eje vertical indica el puntaje promedio obtenido por los estudiantes en cada categoría de dependencia.
   #     Esta visualización permite comparar el desempeño académico según el tipo de establecimiento, lo cual es relevante para analizar diferencias estructurales dentro del sistema escolar chileno. En este contexto, una variación de 5 puntos o más entre años consecutivos se considera significativa.",
   #     easyClose = TRUE,
   #     footer = NULL
@@ -444,7 +458,7 @@ server <- function(input, output, session) {
   # observeEvent(input$info_plot32, {
   #   showModal(modalDialog(
   #     title = "Promedio por SLEP",
-  #     "Este gráfico muestra la evolución del puntaje promedio SIMCE en establecimientos escolares de administración pública, desagregados según el tipo de gestión: Municipal o Servicios Locales de Educación Pública (SLEP), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), entre los años 2002 y 2024. El eje horizontal representa el año de evaluación, y el eje vertical, el puntaje promedio.
+  #     "Este gráfico muestra la evolución del puntaje promedio Simce en establecimientos escolares de administración pública, desagregados según el tipo de gestión: Municipal o Servicios Locales de Educación Pública (SLEP), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), entre los años 2002 y 2024. El eje horizontal representa el año de evaluación, y el eje vertical, el puntaje promedio.
   #     Los establecimientos bajo administración SLEP se agrupan según su año de traspaso al nuevo sistema (2018, 2019, 2020, etc.), lo que permite realizar comparaciones longitudinales y entre cohortes de implementación.
   #     Este gráfico permite evaluar el impacto y evolución del proceso de desmunicipalización impulsado por la reforma educativa chilena. Se considera que una variación de 5 puntos o más en el puntaje entre un año y otro corresponde a un cambio significativo.",
   #     easyClose = TRUE,
@@ -455,10 +469,10 @@ server <- function(input, output, session) {
   # observeEvent(input$info_plot33, {
   #   showModal(modalDialog(
   #     title = "Brecha Dependencia - Nacional por GSE agrupado",
-  #     "Este gráfico muestra la evolución de la brecha de puntaje SIMCE entre tipos de dependencia escolar dentro de un mismo grupo socioeconómico agrupago en 3 categorías (Alto y Medio Alto; Medio; Medio Bajo y Bajo), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de evaluación, mientras que el eje vertical indica la magnitud de la diferencia de puntaje respecto del promedio nacional.
+  #     "Este gráfico muestra la evolución de la brecha de puntaje Simce entre tipos de dependencia escolar dentro de un mismo grupo socioeconómico agrupago en 3 categorías (Alto y Medio Alto; Medio; Medio Bajo y Bajo), para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), en el período comprendido entre los años 2002 y 2024. El eje horizontal representa el año de evaluación, mientras que el eje vertical indica la magnitud de la diferencia de puntaje respecto del promedio nacional.
   #     Cada línea representa el puntaje promedio de un tipo de dependencia escolar para el grupo socioeconómico seleccionado, comparado con el promedio nacional. Los valores positivos indican un rendimiento superior al promedio nacional, mientras que los negativos reflejan un rendimiento inferior.
   #     Este gráfico permite observar si las diferencias entre tipos de establecimientos persisten al interior de un mismo nivel socioeconómico, lo que aporta una mirada más ajustada y equitativa sobre el desempeño educativo.
-  #     En este contexto, se considera que una variación en la brecha es significativa cuando alcanza o supera los 5 puntos en la escala SIMCE.",
+  #     En este contexto, se considera que una variación en la brecha es significativa cuando alcanza o supera los 5 puntos en la escala Simce.",
   #     easyClose = TRUE,
   #     footer = NULL
   #   ))
@@ -467,7 +481,7 @@ server <- function(input, output, session) {
   # observeEvent(input$info_plot34, {
   #   showModal(modalDialog(
   #     title = "Brecha SLEP - Municipal",
-  #     "Este gráfico muestra la evolución de la brecha de puntaje SIMCE entre establecimientos que fueron traspasados a los Servicios Locales de Educación Pública (SLEP) y los que continuaron bajo administración municipal, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o 2° medio), durante el período comprendido entre los años 2002 y 2024. El eje horizontal indica el año de evaluación, y el eje vertical representa la diferencia de puntaje promedio entre ambos tipos de gestión.
+  #     "Este gráfico muestra la evolución de la brecha de puntaje Simce entre establecimientos que fueron traspasados a los Servicios Locales de Educación Pública (SLEP) y los que continuaron bajo administración municipal, para una combinación específica de asignatura (Lenguaje o Matemática) y nivel educativo (4° básico o II medio), durante el período comprendido entre los años 2002 y 2024. El eje horizontal indica el año de evaluación, y el eje vertical representa la diferencia de puntaje promedio entre ambos tipos de gestión.
   #     Cada línea representa a un grupo de SLEP según su año de inicio: 2018, 2019 o 2020. El valor de la brecha se calcula como la diferencia entre el puntaje promedio de los establecimientos SLEP y los municipales. Valores positivos indican un mayor rendimiento de los SLEP respecto de los municipios, mientras que valores cercanos a cero o negativos indican un rendimiento similar o inferior.
   #     Este gráfico permite evaluar si la transición hacia el nuevo modelo de administración pública ha estado asociada a cambios en los resultados de aprendizaje en comparación con los establecimientos que permanecieron bajo gestión municipal.
   #     Se considera que una variación de 5 puntos o más representa un cambio significativo en la brecha.",
@@ -479,7 +493,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot41, {
     showModal(modalDialog(
       title = "Resultados por comuna",
-      "Este gráfico presenta la distribución geográfica de los resultados SIMCE a nivel comunal, para una combinación específica de asignatura (Lenguaje o Matemática), nivel educativo (4° básico o 2° medio) y año de evaluación. El mapa permite comparar el desempeño promedio de las comunas dentro de una misma región, facilitando la identificación de diferencias territoriales en los resultados de aprendizaje.
+      "Este gráfico presenta la distribución geográfica de los resultados Simce a nivel comunal, para una combinación específica de asignatura (Lenguaje o Matemática), nivel educativo (4° básico o II medio) y año de evaluación. El mapa permite comparar el desempeño promedio de las comunas dentro de una misma región, facilitando la identificación de diferencias territoriales en los resultados de aprendizaje.
       El color de cada comuna refleja el puntaje promedio obtenido, utilizando una escala de color que va desde los tonos más claros (puntajes más bajos) hasta los más oscuros (puntajes más altos). El panel lateral permite seleccionar:
       Región: para acotar el análisis territorial.
       Comuna: para visualizar en detalle su evolución histórica.
@@ -495,7 +509,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot52, {
     showModal(modalDialog(
       title = "Distribución nacional por niveles",
-      "Este gráfico muestra la distribución porcentual de los estudiantes en los distintos niveles de desarrollo de los subdimensiones de los indicadores de desarrollo personal y social, para una combinación específica de subdimensión y nivel educativo (4° básico o 2° medio), para el año 2024. 
+      "Este gráfico muestra la distribución porcentual de los estudiantes en los distintos niveles de desarrollo de los subdimensiones de los indicadores de desarrollo personal y social, para una combinación específica de subdimensión y nivel educativo (4° básico o II medio), para el año 2024. 
       El eje vertical indica las subdimensiones asociados al indicador seleccionado, mientras que el eje horizontal representa el porcentaje de estudiantes ubicados en cada nivel de desarrollo. Algunas subdimensiones cuentan con tres niveles: 
       Alto, Medio y Bajo, y otras con dos: Alto y Bajo, dependiendo de las características del aspecto evaluado. Este gráfico permite identificar tendencias en la distribución.",
       easyClose = TRUE,
@@ -506,7 +520,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot54, {
     showModal(modalDialog(
       title = "Distribución de niveles por grupo y nivel seleccionado: ",
-      "Este gráfico muestra el porcentaje de estudiantes que se encuentra en el nivel de desarrollo seleccionado (Alto, Medio o Bajo), comparando distintas categorías dentro del grupo seleccionado (género o grupo socioeconómico), para una combinación específica de subdimensión y nivel educativo (4° básico o 2° medio) en el año 2024. 
+      "Este gráfico muestra el porcentaje de estudiantes que se encuentra en el nivel de desarrollo seleccionado (Alto, Medio o Bajo), comparando distintas categorías dentro del grupo seleccionado (género o grupo socioeconómico), para una combinación específica de subdimensión y nivel educativo (4° básico o II medio) en el año 2024. 
       En particular, permite visualizar diferencias entre grupos y detectar posibles brechas en una subdimensión determinada.",
       easyClose = TRUE,
       footer = NULL
@@ -516,7 +530,7 @@ server <- function(input, output, session) {
   observeEvent(input$info_plot53, {
     showModal(modalDialog(
       title = "Distribución de niveles por grupo",
-      "Este gráfico muestra la distribución porcentual de los estudiantes en los distintos niveles de desarrollo de los subdimensiones de los indicadores de desarrollo personal y social, para una combinación específica de subdimensión y nivel educativo (4° básico o 2° medio), para el año 2024, comparando las distintas categorías de los grupos seleccionados (género o grupo socioeconómico). 
+      "Este gráfico muestra la distribución porcentual de los estudiantes en los distintos niveles de desarrollo de los subdimensiones de los indicadores de desarrollo personal y social, para una combinación específica de subdimensión y nivel educativo (4° básico o II medio), para el año 2024, comparando las distintas categorías de los grupos seleccionados (género o grupo socioeconómico). 
       El eje vertical indica las subdimensiones asociadas al indicador seleccionado, mientras que el eje horizontal representa el porcentaje de estudiantes ubicados en cada nivel de desarrollo, en las distintas categorías del grupo seleccionado. 
       Algunas subdimensiones cuentan con tres niveles: Alto, Medio y Bajo, y otras con dos: Alto y Bajo, dependiendo de las características del aspecto evaluado. 
       Este gráfico permite identificar tendencias en la distribución.",
@@ -548,7 +562,7 @@ server <- function(input, output, session) {
                      status = NULL,
                      tagList(
                        HTML('
-      <h2>Bienvenido al Visor de datos Simce</h2>
+      <h2>Bienvenidos al Visor de datos Simce</h2>
       <p>Este dashboard ha sido desarrollado por la Agencia de Calidad de la Educación para explorar de manera interactiva los resultados del Simce,
       y fomentar el análisis y la toma de decisiones basada en evidencia.
       La herramienta permite visualizar datos en distintos niveles de agregación, incluyendo análisis nacionales, 
@@ -823,7 +837,7 @@ server <- function(input, output, session) {
                        fixed = TRUE,
                        draggable = TRUE,
                        top = 10, right = 10, bottom = "auto", left = "auto",
-                       width = 260, height = "auto",
+                       width = 300, height = "auto",
                        style = "background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 8px; 
                  box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 1050; font-size: 12px;",
                        
@@ -1688,7 +1702,7 @@ server <- function(input, output, session) {
       geom_point(data = df_long %>% filter(tipo == "ptje_nac"), aes(shape = tipo), size = 3, alpha = 0.5, color = "#FF5235") +  
       geom_text(data = df_long %>% filter(tipo == "num"), 
                 aes(x = factor(agno), y = puntaje, label = round(puntaje, 0)), 
-                vjust = -1, size = 3, color = "black", fontface = "bold", inherit.aes = FALSE) +  
+                vjust = -1, size = 3.5, color = "black", fontface = "bold", inherit.aes = FALSE) +  
       
       scale_x_discrete() +
       scale_y_continuous(limits = c(min(df_long$puntaje) - 10, max(df_long$puntaje) + 15)) +
