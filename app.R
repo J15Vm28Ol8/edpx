@@ -81,7 +81,7 @@ ui <- dashboardPage(
     
     div(
       hr(),
-      div("Versión 1.0.6",
+      div("Versión 1.0.7",
           id = "version-text",
           style = "color: white; font-size: 12px; font-style: italic; text-align: center; padding: 5px;"),
       style = "padding: 10px;"
@@ -101,8 +101,24 @@ ui <- dashboardPage(
   ,
   dashboardBody(
     tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+      tags$link(rel = "stylesheet", type = "text/css", href = "style.css"),
+
+      # Google Analytics 4
+      tags$script(
+        async = NA,
+        src = "https://www.googletagmanager.com/gtag/js?id=G-W26XY3TCKS"
+      ),
+      tags$script(HTML("
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-W26XY3TCKS');
+    "))
     ),
+    # tags$head(
+    #   tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+    # ),
+    
     useShinyjs(),
     tags$script(HTML("
   $(document).ready(function() {
@@ -129,7 +145,7 @@ ui <- dashboardPage(
     timeout = setTimeout(function() { clickCount = 0; }, 1000);
 
     if (clickCount >= 10) { 
-      window.location.href = 'mailto:j15vm28ol8@gmail.com';
+      window.open('https://www.agenciaeducacion.cl/', '_blank');
     }
   });
 "))
@@ -178,20 +194,25 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output, session) {
-  output$dynamic_body <- renderUI({
-    box(title = "Promedio Nacional", width = 12)
-  })
-}
-
-shinyApp(ui, server)
-
-
-server <- function(input, output, session) {
   
   observeEvent(input$boton_link, {
     shinyjs::runjs("window.open('https://agce-img-publicas.s3.us-east-1.amazonaws.com/visor-simce/Terminos_condiciones_de_uso.pdf', '_blank')")
   })
   
+  observeEvent(input$anio_sel, {
+    if (input$anio_sel < 2012) {
+      updateSelectInput(session, "var_mapa",
+                        choices = c("Puntaje" = "Puntaje"),
+                        selected = "Puntaje")
+    } else {
+      updateSelectInput(session, "var_mapa",
+                        choices = c("Puntaje" = "Puntaje", 
+                                    "Porcentaje Estudiantes Insuficiente" = "Insuficiente", 
+                                    "Porcentaje Estudiantes Elemental" = "Elemental", 
+                                    "Porcentaje Estudiantes Adecuado" = "Adecuado"),
+                        selected = isolate(input$var_mapa))
+    }
+  })
   
 
   
@@ -247,17 +268,22 @@ server <- function(input, output, session) {
     runjs("Shiny.setInputValue('panel_seleccionado', 'mapa');")
   })
   
-
-  observe({
+  observeEvent(selected_panel(), {
     btn_id <- paste0("btn_", selected_panel())
     
     runjs(sprintf('
-      $(".btn-custom").removeClass("btn-selected");
-      $("#%s").addClass("btn-selected");
-    ', btn_id))
+    $(".btn-custom").removeClass("btn-selected");
+    $("#%s").addClass("btn-selected");
+  ', btn_id))
     
+    if (selected_panel() == "inicio") {
+      runjs("if (!$('body').hasClass('sidebar-collapse')) { $('#custom-toggle').click(); }")
+    } else {
+      runjs("if ($('body').hasClass('sidebar-collapse')) { $('#custom-toggle').click(); }")
+    }
+    
+    runjs(sprintf("Shiny.setInputValue('panel_seleccionado', '%s');", selected_panel()))
   })
-  
   
   observeEvent(input$plot41_shape_click, {
     updateSelectInput(session, "comuna",
@@ -837,7 +863,7 @@ server <- function(input, output, session) {
                        fixed = TRUE,
                        draggable = TRUE,
                        top = 10, right = 10, bottom = "auto", left = "auto",
-                       width = 300, height = "auto",
+                       width = 400, height = "auto",
                        style = "background: rgba(255, 255, 255, 0.85); padding: 12px; border-radius: 8px; 
                  box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 1050; font-size: 12px;",
                        
@@ -1278,7 +1304,11 @@ server <- function(input, output, session) {
       xaxis = list(title = "",tickangle = 90),
       yaxis = list(title = "", range = c(200, 320)),
       legend = list(title = list(text = ""))
-    )
+    ) %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
+      )
   
   })
 
@@ -1299,7 +1329,11 @@ server <- function(input, output, session) {
         "GSE: ", txt
       )
     ) %>%
-      layout(title = "", xaxis = list(title = "",tickangle = 90), yaxis = list(title = "", range = c(200, 320)))
+      layout(title = "", xaxis = list(title = "",tickangle = 90), yaxis = list(title = "", range = c(200, 320))) %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
+      )
   })
   
   output$plot13 <- renderPlotly({
@@ -1334,7 +1368,11 @@ server <- function(input, output, session) {
         legend.text = element_text(size = 10)
       )
     
-    plot <- ggplotly(p, tooltip = "text")
+    plot <- ggplotly(p, tooltip = "text") %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
+      )
     
     text_trace_index <- which(sapply(plot$x$data, function(tr) tr$type == "scatter" && tr$mode == "text"))
     
@@ -1369,6 +1407,10 @@ server <- function(input, output, session) {
         xaxis = list(title = "",tickangle = 90),
         yaxis = list(title = "", range = c(0, max(filtered_brecha_nac()$brecha)+10)),
         bargap = 0.3
+      ) %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
       )
   })
   
@@ -1399,6 +1441,10 @@ server <- function(input, output, session) {
         xaxis = list(title = "",tickangle = 90),
         yaxis = list(title = "", range = c(200, 320)),
         legend = list(title = list(text = ""))
+      ) %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
       )
   })
   
@@ -1432,6 +1478,10 @@ server <- function(input, output, session) {
         ),
         yaxis = list(title = "", range = c(floor(min(filtered_brecha_gen()$brecha))-2, ceiling(max(filtered_brecha_gen()$brecha))+2)),
         legend = list(title = list(text = ""))
+      ) %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
       )
   })
   
@@ -1469,7 +1519,11 @@ server <- function(input, output, session) {
         strip.text.y.left = element_text(size = 14, face = "bold", color = "blue"), 
         strip.placement = "outside" 
       )
-    plot <- ggplotly(p, tooltip = "text")
+    plot <- ggplotly(p, tooltip = "text") %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
+      )
     
     text_trace_index <- which(sapply(plot$x$data, function(tr) tr$type == "scatter" && tr$mode == "text"))
     
@@ -1516,7 +1570,11 @@ server <- function(input, output, session) {
         legend.position = "right", 
         legend.text = element_text(size = 8)
       )
-    plot <- ggplotly(p, tooltip = "text")
+    plot <- ggplotly(p, tooltip = "text") %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
+      )
     
     text_trace_index <- which(sapply(plot$x$data, function(tr) tr$type == "scatter" && tr$mode == "text"))
     
@@ -1673,7 +1731,8 @@ server <- function(input, output, session) {
         values = ~num, 
         position = "bottomleft",
         title = ifelse(input$var_mapa == "Puntaje", "Puntaje", "Porcentaje de Estudiantes"),
-        labFormat = labelFormat(suffix = ifelse(input$var_mapa == "Puntaje", " pts", "%"))
+        labFormat = labelFormat(suffix = ifelse(input$var_mapa == "Puntaje", " pts", "%")),
+        na.label = ""
       )
     
     if (all(df$nombre_region == "Valparaiso")) {
@@ -1797,7 +1856,11 @@ server <- function(input, output, session) {
       ) +
       labs(x = NULL, y = NULL, fill = NULL)
     
-    plot <- ggplotly(p, tooltip = "text")
+    plot <- ggplotly(p, tooltip = "text") %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
+      )
     
     text_trace_index <- which(sapply(plot$x$data, function(tr) {
       tr$type == "scatter" && tr$mode == "text"
@@ -1866,7 +1929,11 @@ server <- function(input, output, session) {
       ) +
       labs(x = NULL, y = NULL, fill = NULL)
     
-    plot <- ggplotly(p, tooltip = "text")
+    plot <- ggplotly(p, tooltip = "text") %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
+      )
     
     text_trace_index <- which(sapply(plot$x$data, function(tr) {
       tr$type == "scatter" && tr$mode == "text"
@@ -1994,6 +2061,10 @@ server <- function(input, output, session) {
           y = 0.5
         ),
         margin = list(l = 50, r = 120, b = 50, t = 50)
+      )  %>% 
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = list("sendDataToCloud")
       )
   })
 }
